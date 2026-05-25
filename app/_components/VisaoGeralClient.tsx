@@ -124,13 +124,11 @@ export default function VisaoGeralClient({ ads }: { ads: ProcessedAd[] }) {
     },
     { accessorKey: 'lp', header: 'LP' },
     { accessorKey: 'anuncios', header: 'Anúncios', enableSorting: true, cell: ({ getValue }) => formatNumber(getValue() as number) },
-    { accessorKey: 'impressoes', header: 'Impressões', enableSorting: true, cell: ({ getValue }) => formatNumber(getValue() as number) },
-    { accessorKey: 'viewsPagina', header: 'Views Página', enableSorting: true, cell: ({ getValue }) => formatNumber(getValue() as number) },
-    { accessorKey: 'cliques', header: 'Cliques', enableSorting: true, cell: ({ getValue }) => formatNumber(getValue() as number) },
-    { accessorKey: 'resultados', header: 'Compras', enableSorting: true, cell: ({ getValue }) => formatNumber(getValue() as number) },
     { accessorKey: 'gasto', header: 'Gasto', enableSorting: true, cell: ({ getValue }) => formatBRL(getValue() as number) },
-    { accessorKey: 'receita', header: 'Receita', enableSorting: true, cell: ({ getValue }) => <span className="text-[#22c55e]">{formatBRL(getValue() as number)}</span> },
+    { accessorKey: 'cliques', header: 'Cliques', enableSorting: true, cell: ({ getValue }) => formatNumber(getValue() as number) },
+    { accessorKey: 'viewsPagina', header: 'Views Página', enableSorting: true, cell: ({ getValue }) => formatNumber(getValue() as number) },
     { accessorKey: 'cpa', header: 'CPA', enableSorting: true, cell: ({ getValue }) => <span className="font-semibold text-[#fafafa]">{formatBRL(getValue() as number)}</span> },
+    { accessorKey: 'resultados', header: 'Compras', enableSorting: true, cell: ({ getValue }) => formatNumber(getValue() as number) },
     {
       accessorKey: 'roas', header: 'ROAS', enableSorting: true,
       cell: ({ getValue }) => {
@@ -139,6 +137,7 @@ export default function VisaoGeralClient({ ads }: { ads: ProcessedAd[] }) {
       },
     },
     { accessorKey: 'taxaConversao', header: 'Taxa Conv.', enableSorting: true, cell: ({ getValue }) => formatPercent(getValue() as number) },
+    { accessorKey: 'receita', header: 'Receita', enableSorting: true, cell: ({ getValue }) => <span className="text-[#22c55e]">{formatBRL(getValue() as number)}</span> },
   ], []);
 
   return (
