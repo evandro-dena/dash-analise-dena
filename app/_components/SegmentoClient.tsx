@@ -83,7 +83,7 @@ function aggregateAds(ads: ProcessedAd[]): AdAgg[] {
   }));
 }
 
-function BestLpBadge({ lp, produto, cpa, roas }: { lp: string; produto: Product; cpa: number; roas: number }) {
+function BestLpBadge({ lp, produto }: { lp: string; produto: Product }) {
   const color = produto === 'Laranja Moro' ? '#f97316' : '#3b82f6';
   const bg = produto === 'Laranja Moro' ? '#431407' : '#1e3a8a';
   return (
@@ -91,7 +91,6 @@ function BestLpBadge({ lp, produto, cpa, roas }: { lp: string; produto: Product;
       <Trophy size={13} className="text-[#eab308]" />
       <span className="text-xs text-[#737373]">Melhor LP:</span>
       <span className="px-2 py-0.5 rounded text-xs font-medium" style={{ color, background: bg }}>{lp}</span>
-      <span className="text-xs text-[#737373]">CPA {formatBRL(cpa)} · ROAS {roas.toFixed(2)}x</span>
     </div>
   );
 }
@@ -206,7 +205,7 @@ function SegmentCard({ segmento, ads }: { segmento: Segment; ads: ProcessedAd[] 
           {/* Best LP banner */}
           {bestLp && (
             <div className="mt-4 px-4 py-2.5 bg-[#0a0a0a] rounded-lg border border-[#262626]">
-              <BestLpBadge lp={bestLp.lp} produto={bestLp.produto} cpa={bestLp.cpa} roas={bestLp.roas} />
+              <BestLpBadge lp={bestLp.lp} produto={bestLp.produto} />
             </div>
           )}
 
