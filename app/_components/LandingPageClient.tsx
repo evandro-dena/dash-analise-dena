@@ -11,9 +11,12 @@ const LP_ORDER = [
   'LP-1 /pages/laranja-moro',
   'LP-2 /pages/lm1',
   'LP-3 lm1.denavita.com.br',
+  'LP-4 /products/laranja-moro',
+  'LP-5 lm2.denavita.com.br',
   'LP-1 /pages/jejoom-denavita',
   'LP-2 jejoom.denavita.com.br',
   'LP-3 /pages/jejoom-v3',
+  'LP-4 jejoom1.denavita.com.br',
 ];
 
 const SEGMENTS: Segment[] = ['engaged', 'prospecting', 'existing'];

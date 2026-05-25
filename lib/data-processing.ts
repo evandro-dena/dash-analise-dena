@@ -16,9 +16,12 @@ function classifyLP(url: string | number | null | undefined): { produto: Product
   if (!url) return null;
   const u = String(url).toLowerCase();
   if (u.includes('lm1.denavita.com.br')) return { produto: 'Laranja Moro', lp: 'LP-3 lm1.denavita.com.br' };
+  if (u.includes('lm2.denavita.com.br')) return { produto: 'Laranja Moro', lp: 'LP-5 lm2.denavita.com.br' };
   if (u.includes('/pages/lm1')) return { produto: 'Laranja Moro', lp: 'LP-2 /pages/lm1' };
   if (u.includes('/pages/laranja-moro')) return { produto: 'Laranja Moro', lp: 'LP-1 /pages/laranja-moro' };
+  if (u.includes('/products/laranja-moro')) return { produto: 'Laranja Moro', lp: 'LP-4 /products/laranja-moro' };
   if (u.includes('/pages/jejoom-v3')) return { produto: 'Jejoom', lp: 'LP-3 /pages/jejoom-v3' };
+  if (u.includes('jejoom1.denavita.com.br')) return { produto: 'Jejoom', lp: 'LP-4 jejoom1.denavita.com.br' };
   if (u.includes('jejoom.denavita.com.br')) return { produto: 'Jejoom', lp: 'LP-2 jejoom.denavita.com.br' };
   if (u.includes('/pages/jejoom-denavita')) return { produto: 'Jejoom', lp: 'LP-1 /pages/jejoom-denavita' };
   return null;
