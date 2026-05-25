@@ -1,8 +1,8 @@
 import { getDashboardData, aggregateByAdAndSegment } from '@/lib/data-processing';
-import VisaoGeralClient from './_components/VisaoGeralClient';
+import LandingPageClient from '../_components/LandingPageClient';
 
-export default function Home() {
+export default function LandingPagePage() {
   const { ads } = getDashboardData();
   const aggregated = aggregateByAdAndSegment(ads);
-  return <VisaoGeralClient ads={aggregated} />;
+  return <LandingPageClient ads={aggregated} />;
 }

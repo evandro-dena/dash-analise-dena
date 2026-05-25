@@ -1,8 +1,8 @@
 import { getDashboardData, aggregateByAdAndSegment } from '@/lib/data-processing';
-import VisaoGeralClient from './_components/VisaoGeralClient';
+import ComparativoClient from '../_components/ComparativoClient';
 
-export default function Home() {
+export default function ComparativoPage() {
   const { ads } = getDashboardData();
   const aggregated = aggregateByAdAndSegment(ads);
-  return <VisaoGeralClient ads={aggregated} />;
+  return <ComparativoClient ads={aggregated} />;
 }

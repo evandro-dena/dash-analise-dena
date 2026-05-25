@@ -1,8 +1,8 @@
 import { getDashboardData, aggregateByAdAndSegment } from '@/lib/data-processing';
-import VisaoGeralClient from './_components/VisaoGeralClient';
+import CriativoClient from '../_components/CriativoClient';
 
-export default function Home() {
+export default function CriativoPage() {
   const { ads } = getDashboardData();
   const aggregated = aggregateByAdAndSegment(ads);
-  return <VisaoGeralClient ads={aggregated} />;
+  return <CriativoClient ads={aggregated} />;
 }
