@@ -18,9 +18,9 @@ const LP_ORDER = [
 
 const SEGMENTS: Segment[] = ['engaged', 'prospecting', 'existing'];
 const SEGMENT_LABELS: Record<Segment, string> = {
-  engaged: 'Engaged',
-  prospecting: 'Prospecting',
-  existing: 'Existing',
+  engaged: 'Público Engajado',
+  prospecting: 'Novo Público',
+  existing: 'Cliente Existente',
 };
 
 interface SegmentPerf {

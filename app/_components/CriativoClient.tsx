@@ -10,9 +10,9 @@ import { Search, ArrowUp, ArrowDown } from 'lucide-react';
 
 const SEGMENTS: Segment[] = ['engaged', 'prospecting', 'existing'];
 const SEGMENT_LABELS: Record<Segment, string> = {
-  engaged: 'Engaged',
-  prospecting: 'Prospecting',
-  existing: 'Existing',
+  engaged: 'Público Engajado',
+  prospecting: 'Novo Público',
+  existing: 'Cliente Existente',
 };
 
 function Badge({ text, color, bg }: { text: string; color: string; bg: string }) {
