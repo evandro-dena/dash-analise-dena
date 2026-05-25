@@ -17,8 +17,11 @@ interface LpRow {
   cliques: number;
   resultados: number;
   gasto: number;
+  receita: number;
   cpa: number;
+  roas: number;
   taxaConversao: number;
+  viewsPagina: number;
 }
 
 const LP_ORDER = [
@@ -34,20 +37,25 @@ export default function VisaoGeralClient({ ads }: { ads: ProcessedAd[] }) {
   const { productFilter } = useFilter();
 
   const filtered = useMemo(
-    () =>
-      productFilter === 'Todos'
-        ? ads
-        : ads.filter((a) => a.produto === productFilter),
+    () => productFilter === 'Todos' ? ads : ads.filter((a) => a.produto === productFilter),
     [ads, productFilter],
   );
 
   const kpis = useMemo(() => {
     const gasto = filtered.reduce((s, a) => s + a.gasto, 0);
+    const receita = filtered.reduce((s, a) => s + a.receita, 0);
     const resultados = filtered.reduce((s, a) => s + a.resultados, 0);
-    const cpa = resultados > 0 ? gasto / resultados : 0;
     const cliques = filtered.reduce((s, a) => s + a.cliques, 0);
-    const taxaConversao = cliques > 0 ? (resultados / cliques) * 100 : 0;
-    return { gasto, resultados, cpa, taxaConversao };
+    const viewsPagina = filtered.reduce((s, a) => s + a.viewsPagina, 0);
+    return {
+      gasto,
+      receita,
+      resultados,
+      cpa: resultados > 0 ? gasto / resultados : 0,
+      roas: gasto > 0 ? receita / gasto : 0,
+      taxaConversao: cliques > 0 ? (resultados / cliques) * 100 : 0,
+      viewsPagina,
+    };
   }, [filtered]);
 
   const gastoPorProduto = useMemo(() => {
@@ -71,19 +79,14 @@ export default function VisaoGeralClient({ ads }: { ads: ProcessedAd[] }) {
   const lpRows = useMemo<LpRow[]>(() => {
     const map = new Map<string, LpRow>();
     for (const ad of filtered) {
-      const key = ad.lp;
-      const existing = map.get(key);
+      const existing = map.get(ad.lp);
       if (!existing) {
-        map.set(key, {
-          produto: ad.produto,
-          lp: ad.lp,
-          anuncios: 1,
-          impressoes: ad.impressoes,
-          cliques: ad.cliques,
-          resultados: ad.resultados,
-          gasto: ad.gasto,
-          cpa: 0,
-          taxaConversao: 0,
+        map.set(ad.lp, {
+          produto: ad.produto, lp: ad.lp, anuncios: 1,
+          impressoes: ad.impressoes, cliques: ad.cliques,
+          resultados: ad.resultados, gasto: ad.gasto,
+          receita: ad.receita, viewsPagina: ad.viewsPagina,
+          cpa: 0, roas: 0, taxaConversao: 0,
         });
       } else {
         existing.anuncios++;
@@ -91,85 +94,52 @@ export default function VisaoGeralClient({ ads }: { ads: ProcessedAd[] }) {
         existing.cliques += ad.cliques;
         existing.resultados += ad.resultados;
         existing.gasto += ad.gasto;
+        existing.receita += ad.receita;
+        existing.viewsPagina += ad.viewsPagina;
       }
     }
     const rows = Array.from(map.values()).map((r) => ({
       ...r,
       cpa: r.resultados > 0 ? r.gasto / r.resultados : 0,
+      roas: r.gasto > 0 ? r.receita / r.gasto : 0,
       taxaConversao: r.cliques > 0 ? (r.resultados / r.cliques) * 100 : 0,
     }));
     rows.sort((a, b) => LP_ORDER.indexOf(a.lp) - LP_ORDER.indexOf(b.lp));
     return rows;
   }, [filtered]);
 
-  const columns = useMemo<ColumnDef<LpRow>[]>(
-    () => [
-      {
-        accessorKey: 'produto',
-        header: 'Produto',
-        cell: ({ getValue }) => {
-          const v = getValue() as Product;
-          return (
-            <span
-              className="px-2 py-0.5 rounded text-xs font-medium"
-              style={{
-                background: v === 'Laranja Moro' ? '#431407' : '#1e3a8a',
-                color: v === 'Laranja Moro' ? '#f97316' : '#93c5fd',
-              }}
-            >
-              {v}
-            </span>
-          );
-        },
+  const columns = useMemo<ColumnDef<LpRow>[]>(() => [
+    {
+      accessorKey: 'produto',
+      header: 'Produto',
+      cell: ({ getValue }) => {
+        const v = getValue() as Product;
+        return (
+          <span className="px-2 py-0.5 rounded text-xs font-medium"
+            style={{ background: v === 'Laranja Moro' ? '#431407' : '#1e3a8a', color: v === 'Laranja Moro' ? '#f97316' : '#93c5fd' }}>
+            {v}
+          </span>
+        );
       },
-      { accessorKey: 'lp', header: 'LP' },
-      {
-        accessorKey: 'anuncios',
-        header: 'Anúncios',
-        enableSorting: true,
-        cell: ({ getValue }) => formatNumber(getValue() as number),
+    },
+    { accessorKey: 'lp', header: 'LP' },
+    { accessorKey: 'anuncios', header: 'Anúncios', enableSorting: true, cell: ({ getValue }) => formatNumber(getValue() as number) },
+    { accessorKey: 'impressoes', header: 'Impressões', enableSorting: true, cell: ({ getValue }) => formatNumber(getValue() as number) },
+    { accessorKey: 'viewsPagina', header: 'Views Página', enableSorting: true, cell: ({ getValue }) => formatNumber(getValue() as number) },
+    { accessorKey: 'cliques', header: 'Cliques', enableSorting: true, cell: ({ getValue }) => formatNumber(getValue() as number) },
+    { accessorKey: 'resultados', header: 'Compras', enableSorting: true, cell: ({ getValue }) => formatNumber(getValue() as number) },
+    { accessorKey: 'gasto', header: 'Gasto', enableSorting: true, cell: ({ getValue }) => formatBRL(getValue() as number) },
+    { accessorKey: 'receita', header: 'Receita', enableSorting: true, cell: ({ getValue }) => <span className="text-[#22c55e]">{formatBRL(getValue() as number)}</span> },
+    { accessorKey: 'cpa', header: 'CPA', enableSorting: true, cell: ({ getValue }) => <span className="font-semibold text-[#fafafa]">{formatBRL(getValue() as number)}</span> },
+    {
+      accessorKey: 'roas', header: 'ROAS', enableSorting: true,
+      cell: ({ getValue }) => {
+        const v = getValue() as number;
+        return <span className={`font-semibold ${v >= 1 ? 'text-[#22c55e]' : 'text-[#ef4444]'}`}>{v.toFixed(2)}x</span>;
       },
-      {
-        accessorKey: 'impressoes',
-        header: 'Impressões',
-        enableSorting: true,
-        cell: ({ getValue }) => formatNumber(getValue() as number),
-      },
-      {
-        accessorKey: 'cliques',
-        header: 'Cliques',
-        enableSorting: true,
-        cell: ({ getValue }) => formatNumber(getValue() as number),
-      },
-      {
-        accessorKey: 'resultados',
-        header: 'Compras',
-        enableSorting: true,
-        cell: ({ getValue }) => formatNumber(getValue() as number),
-      },
-      {
-        accessorKey: 'gasto',
-        header: 'Gasto',
-        enableSorting: true,
-        cell: ({ getValue }) => formatBRL(getValue() as number),
-      },
-      {
-        accessorKey: 'cpa',
-        header: 'CPA',
-        enableSorting: true,
-        cell: ({ getValue }) => (
-          <span className="font-semibold text-[#fafafa]">{formatBRL(getValue() as number)}</span>
-        ),
-      },
-      {
-        accessorKey: 'taxaConversao',
-        header: 'Taxa Conv.',
-        enableSorting: true,
-        cell: ({ getValue }) => formatPercent(getValue() as number),
-      },
-    ],
-    [],
-  );
+    },
+    { accessorKey: 'taxaConversao', header: 'Taxa Conv.', enableSorting: true, cell: ({ getValue }) => formatPercent(getValue() as number) },
+  ], []);
 
   return (
     <div className="flex flex-col gap-6">
@@ -181,32 +151,31 @@ export default function VisaoGeralClient({ ads }: { ads: ProcessedAd[] }) {
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard label="Gasto Total" value={formatBRL(kpis.gasto)} />
+        <KpiCard label="Receita Total" value={formatBRL(kpis.receita)} accentColor="#22c55e" />
         <KpiCard label="Compras" value={formatNumber(kpis.resultados)} />
         <KpiCard label="CPA Médio" value={formatBRL(kpis.cpa)} />
+      </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <KpiCard label="ROAS Médio" value={`${kpis.roas.toFixed(2)}x`} accentColor={kpis.roas >= 1 ? '#22c55e' : '#ef4444'} />
         <KpiCard label="Taxa de Conversão" value={formatPercent(kpis.taxaConversao)} />
+        <KpiCard label="Views de Página" value={formatNumber(kpis.viewsPagina)} />
       </div>
 
       {/* Pie charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="bg-[#141414] border border-[#262626] rounded-lg p-5">
-          <h2 className="text-xs font-medium uppercase tracking-widest text-[#737373] mb-4">
-            Gasto por Produto
-          </h2>
+          <h2 className="text-xs font-medium uppercase tracking-widest text-[#737373] mb-4">Gasto por Produto</h2>
           <PieChart data={gastoPorProduto} formatter={formatBRL} />
         </div>
         <div className="bg-[#141414] border border-[#262626] rounded-lg p-5">
-          <h2 className="text-xs font-medium uppercase tracking-widest text-[#737373] mb-4">
-            Gasto por Tipo de Mídia
-          </h2>
+          <h2 className="text-xs font-medium uppercase tracking-widest text-[#737373] mb-4">Gasto por Tipo de Mídia</h2>
           <PieChart data={gastoPorMidia} formatter={formatBRL} />
         </div>
       </div>
 
       {/* LP summary table */}
       <div className="bg-[#141414] border border-[#262626] rounded-lg p-5">
-        <h2 className="text-xs font-medium uppercase tracking-widest text-[#737373] mb-4">
-          Resumo por Landing Page
-        </h2>
+        <h2 className="text-xs font-medium uppercase tracking-widest text-[#737373] mb-4">Resumo por Landing Page</h2>
         {lpRows.length === 0 ? (
           <p className="text-[#737373] text-sm py-8 text-center">Sem dados qualificados para esse filtro</p>
         ) : (

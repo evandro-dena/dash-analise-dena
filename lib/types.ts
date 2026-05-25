@@ -35,6 +35,23 @@ export interface RawUrlRow {
   'Valor usado (BRL)': number;
 }
 
+export interface RawMetricsRow {
+  'Nome da campanha': string;
+  'Segmentos de público': string;
+  'Nome do anúncio': string;
+  'Hook Rate': number;
+  'Reproduções de 100% do vídeo': number;
+  'Valor usado (BRL)': number;
+  'Cliques no link': number;
+  'Visualizações da página de destino do site': number;
+  'Tipo de resultado': string;
+  'Finalizações de compra iniciadas': number;
+  'Taxa de conversão': number;
+  Resultados: number;
+  'ROAS (retorno sobre o investimento em publicidade) das compras': number;
+  'Valor dos resultados': number;
+}
+
 export interface ProcessedAd {
   nomeAnuncio: string;
   segmento: Segment;
@@ -46,9 +63,14 @@ export interface ProcessedAd {
   cliques: number;
   resultados: number;
   gasto: number;
+  receita: number;
   cpa: number;
+  roas: number;
   taxaConversao: number;
   ctr: number;
+  hookRate: number;
+  viewsPagina: number;
+  checkoutIniciados: number;
 }
 
 export interface LpSummary {
@@ -59,15 +81,20 @@ export interface LpSummary {
   cliques: number;
   resultados: number;
   gasto: number;
+  receita: number;
   cpa: number;
+  roas: number;
   taxaConversao: number;
+  viewsPagina: number;
 }
 
 export interface SegmentSummary {
   segmento: Segment;
   gasto: number;
+  receita: number;
   resultados: number;
   cpa: number;
+  roas: number;
   taxaConversao: number;
   impressoes: number;
   cliques: number;
