@@ -167,13 +167,20 @@ function SegmentCard({ segmento, ads }: { segmento: Segment; ads: ProcessedAd[] 
           style={{ color: v === 'Vídeo' ? '#c4b5fd' : '#67e8f9', background: v === 'Vídeo' ? '#2e1065' : '#083344' }}>{v}</span>;
       },
     },
+    { accessorKey: 'lp', header: 'LP', enableSorting: false },
+    { accessorKey: 'gasto', header: 'Gasto', enableSorting: true, cell: ({ getValue }) => formatBRL(getValue() as number) },
     {
-      accessorKey: 'resultados', header: 'Vendas', enableSorting: true,
-      cell: ({ getValue }) => <span className="text-[#22c55e] font-semibold">{formatNumber(getValue() as number)}</span>,
+      accessorKey: 'hookRate', header: 'Hook Rate', enableSorting: true,
+      cell: ({ getValue }) => formatPercent((getValue() as number) * 100),
     },
+    { accessorKey: 'viewsPagina', header: 'Views Página', enableSorting: true, cell: ({ getValue }) => formatNumber(getValue() as number) },
     {
       accessorKey: 'cpa', header: 'CPA', enableSorting: true,
       cell: ({ getValue }) => <span className="text-[#fafafa] font-semibold">{formatBRL(getValue() as number)}</span>,
+    },
+    {
+      accessorKey: 'resultados', header: 'Vendas', enableSorting: true,
+      cell: ({ getValue }) => <span className="text-[#22c55e] font-semibold">{formatNumber(getValue() as number)}</span>,
     },
     {
       accessorKey: 'roas', header: 'ROAS', enableSorting: true,
@@ -183,14 +190,6 @@ function SegmentCard({ segmento, ads }: { segmento: Segment; ads: ProcessedAd[] 
       },
     },
     { accessorKey: 'taxaConversao', header: 'Taxa Conv.', enableSorting: true, cell: ({ getValue }) => formatPercent(getValue() as number) },
-    { accessorKey: 'ctr', header: 'CTR', enableSorting: true, cell: ({ getValue }) => formatPercent(getValue() as number) },
-    {
-      accessorKey: 'hookRate', header: 'Hook Rate', enableSorting: true,
-      cell: ({ getValue }) => formatPercent((getValue() as number) * 100),
-    },
-    { accessorKey: 'viewsPagina', header: 'Views Página', enableSorting: true, cell: ({ getValue }) => formatNumber(getValue() as number) },
-    { accessorKey: 'gasto', header: 'Gasto', enableSorting: true, cell: ({ getValue }) => formatBRL(getValue() as number) },
-    { accessorKey: 'lp', header: 'LP', enableSorting: false },
   ], []);
 
   return (

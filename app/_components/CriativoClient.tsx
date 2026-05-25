@@ -74,32 +74,20 @@ export default function CriativoClient({ ads }: { ads: ProcessedAd[] }) {
           color={v === 'Laranja Moro' ? '#f97316' : '#93c5fd'} bg={v === 'Laranja Moro' ? '#431407' : '#1e3a8a'} />;
       },
     },
-    { accessorKey: 'lp', header: 'LP', enableSorting: false },
     {
       accessorKey: 'segmento', header: 'Segmento', enableSorting: false,
       cell: ({ getValue }) => <span className="text-[#a3a3a3] capitalize">{SEGMENT_LABELS[getValue() as Segment]}</span>,
     },
-    { accessorKey: 'impressoes', header: 'Impressões', enableSorting: true, cell: ({ getValue }) => formatNumber(getValue() as number) },
-    { accessorKey: 'viewsPagina', header: 'Views Pág.', enableSorting: true, cell: ({ getValue }) => formatNumber(getValue() as number) },
-    { accessorKey: 'cliques', header: 'Cliques', enableSorting: true, cell: ({ getValue }) => formatNumber(getValue() as number) },
-    { accessorKey: 'ctr', header: 'CTR %', enableSorting: true, cell: ({ getValue }) => formatPercent(getValue() as number) },
+    { accessorKey: 'lp', header: 'LP', enableSorting: false },
+    { accessorKey: 'gasto', header: 'Gasto', enableSorting: true, cell: ({ getValue }) => formatBRL(getValue() as number) },
     {
       accessorKey: 'hookRate', header: 'Hook Rate', enableSorting: true,
       cell: ({ getValue }) => formatPercent((getValue() as number) * 100),
     },
-    { accessorKey: 'resultados', header: 'Compras', enableSorting: true, cell: ({ getValue }) => <span className="text-[#22c55e] font-semibold">{formatNumber(getValue() as number)}</span> },
-    { accessorKey: 'taxaConversao', header: 'Taxa Conv. %', enableSorting: true, cell: ({ getValue }) => formatPercent(getValue() as number) },
-    { accessorKey: 'gasto', header: 'Gasto R$', enableSorting: true, cell: ({ getValue }) => formatBRL(getValue() as number) },
-    { accessorKey: 'receita', header: 'Receita R$', enableSorting: true, cell: ({ getValue }) => <span className="text-[#22c55e]">{formatBRL(getValue() as number)}</span> },
+    { accessorKey: 'viewsPagina', header: 'Views Pág.', enableSorting: true, cell: ({ getValue }) => formatNumber(getValue() as number) },
+    { accessorKey: 'cliques', header: 'Cliques', enableSorting: true, cell: ({ getValue }) => formatNumber(getValue() as number) },
     {
-      accessorKey: 'roas', header: 'ROAS', enableSorting: true,
-      cell: ({ getValue }) => {
-        const v = getValue() as number;
-        return <span className={`font-semibold ${v >= 1 ? 'text-[#22c55e]' : 'text-[#ef4444]'}`}>{v.toFixed(2)}x</span>;
-      },
-    },
-    {
-      accessorKey: 'cpa', header: 'CPA R$', enableSorting: true,
+      accessorKey: 'cpa', header: 'CPA', enableSorting: true,
       cell: ({ getValue, row }) => {
         const cpa = getValue() as number;
         const avg = avgCpaBySegment[row.original.segmento] || 0;
@@ -114,6 +102,16 @@ export default function CriativoClient({ ads }: { ads: ProcessedAd[] }) {
         );
       },
     },
+    { accessorKey: 'resultados', header: 'Compras', enableSorting: true, cell: ({ getValue }) => <span className="text-[#22c55e] font-semibold">{formatNumber(getValue() as number)}</span> },
+    {
+      accessorKey: 'roas', header: 'ROAS', enableSorting: true,
+      cell: ({ getValue }) => {
+        const v = getValue() as number;
+        return <span className={`font-semibold ${v >= 1 ? 'text-[#22c55e]' : 'text-[#ef4444]'}`}>{v.toFixed(2)}x</span>;
+      },
+    },
+    { accessorKey: 'taxaConversao', header: 'Taxa Conv.', enableSorting: true, cell: ({ getValue }) => formatPercent(getValue() as number) },
+    { accessorKey: 'receita', header: 'Receita', enableSorting: true, cell: ({ getValue }) => <span className="text-[#22c55e]">{formatBRL(getValue() as number)}</span> },
   ], [avgCpaBySegment]);
 
   function handleExport() {
