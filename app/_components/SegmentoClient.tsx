@@ -133,18 +133,17 @@ function SegmentCard({ segmento, ads }: { segmento: Segment; ads: ProcessedAd[] 
   }, [aggregated, sortMetric]);
 
   const bestLp = useMemo(() => {
-    const lpMap = new Map<string, { produto: Product; gasto: number; receita: number; resultados: number }>();
+    const lpMap = new Map<string, { produto: Product; resultados: number; cliques: number }>();
     for (const ad of ads) {
       const ex = lpMap.get(ad.lp);
-      if (!ex) lpMap.set(ad.lp, { produto: ad.produto, gasto: ad.gasto, receita: ad.receita, resultados: ad.resultados });
-      else { ex.gasto += ad.gasto; ex.receita += ad.receita; ex.resultados += ad.resultados; }
+      if (!ex) lpMap.set(ad.lp, { produto: ad.produto, resultados: ad.resultados, cliques: ad.cliques });
+      else { ex.resultados += ad.resultados; ex.cliques += ad.cliques; }
     }
-    let best: { lp: string; produto: Product; cpa: number; roas: number } | null = null;
-    for (const [lp, { produto, gasto, receita, resultados }] of lpMap) {
-      if (resultados === 0) continue;
-      const cpa = gasto / resultados;
-      const roas = gasto > 0 ? receita / gasto : 0;
-      if (!best || cpa < best.cpa) best = { lp, produto, cpa, roas };
+    let best: { lp: string; produto: Product; taxaConversao: number } | null = null;
+    for (const [lp, { produto, resultados, cliques }] of lpMap) {
+      if (resultados === 0 || cliques === 0) continue;
+      const taxaConversao = (resultados / cliques) * 100;
+      if (!best || taxaConversao > best.taxaConversao) best = { lp, produto, taxaConversao };
     }
     return best;
   }, [ads]);
