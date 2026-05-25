@@ -2,14 +2,12 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Users, Globe, Film, BarChart2 } from 'lucide-react';
+import { LayoutDashboard, Users, Film } from 'lucide-react';
 
 const links = [
   { href: '/', label: 'Visão Geral', Icon: LayoutDashboard },
   { href: '/segmento', label: 'Por Segmento', Icon: Users },
-  { href: '/landing-page', label: 'Por Landing Page', Icon: Globe },
   { href: '/criativo', label: 'Por Criativo', Icon: Film },
-  { href: '/comparativo', label: 'Comparativo', Icon: BarChart2 },
 ];
 
 export default function Sidebar() {
