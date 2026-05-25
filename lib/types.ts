@@ -3,27 +3,21 @@ export type MediaType = 'Vídeo' | 'Imagem';
 export type Product = 'Laranja Moro' | 'Jejoom';
 export type ProductFilter = 'Todos' | Product;
 
-export interface RawSegmentRow {
+export interface RawSegmentMetricsRow {
   'Nome do conjunto de anúncios': string;
   'Nome da campanha': string;
   'Nome do anúncio': string;
   'Segmentos de público': string;
-  'Veiculação do anúncio': string;
-  Alcance: number;
   Impressões: number;
-  Frequência: number;
-  'Tipo de resultado': string;
-  Resultados: number;
-  'Custo por resultado': number;
+  'Hook Rate': number;
   'Valor usado (BRL)': number;
-  Início: string;
-  Término: string;
-  'CPM (custo por 1.000 impressões)': number;
   'Cliques no link': number;
-  'CPC (custo por clique no link)': number;
-  'CTR (taxa de cliques no link)': number;
-  'Início dos relatórios': string;
-  'Encerramento dos relatórios': string;
+  'Visualizações da página de destino do site': number;
+  'Tipo de resultado': string;
+  'Finalizações de compra iniciadas': number;
+  Resultados: number;
+  'ROAS (retorno sobre o investimento em publicidade) das compras': number;
+  'Valor dos resultados': number;
 }
 
 export interface RawUrlRow {
@@ -33,23 +27,6 @@ export interface RawUrlRow {
   'URL do site': string;
   'Tipo de mídia': string;
   'Valor usado (BRL)': number;
-}
-
-export interface RawMetricsRow {
-  'Nome da campanha': string;
-  'Segmentos de público': string;
-  'Nome do anúncio': string;
-  'Hook Rate': number;
-  'Reproduções de 100% do vídeo': number;
-  'Valor usado (BRL)': number;
-  'Cliques no link': number;
-  'Visualizações da página de destino do site': number;
-  'Tipo de resultado': string;
-  'Finalizações de compra iniciadas': number;
-  'Taxa de conversão': number;
-  Resultados: number;
-  'ROAS (retorno sobre o investimento em publicidade) das compras': number;
-  'Valor dos resultados': number;
 }
 
 export interface ProcessedAd {

@@ -1,5 +1,5 @@
-export function normalizeName(name: string): string {
-  return name
+export function normalizeName(name: string | number | null | undefined): string {
+  return String(name ?? '')
     .toLowerCase()
     .replace(/—\s*c[oó]pia/gi, '')
     .replace(/\s{2,}/g, ' ')

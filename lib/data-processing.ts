@@ -2,20 +2,19 @@ import fs from 'fs';
 import path from 'path';
 import Papa from 'papaparse';
 import type {
-  RawSegmentRow,
+  RawSegmentMetricsRow,
   RawUrlRow,
-  RawMetricsRow,
   ProcessedAd,
   DashboardData,
   Segment,
   MediaType,
   Product,
 } from './types';
-import { normalizeName, buildFuzzyMap } from './fuzzy-match';
+import { normalizeName } from './fuzzy-match';
 
-function classifyLP(url: string): { produto: Product; lp: string } | null {
+function classifyLP(url: string | number | null | undefined): { produto: Product; lp: string } | null {
   if (!url) return null;
-  const u = url.toLowerCase();
+  const u = String(url).toLowerCase();
   if (u.includes('lm1.denavita.com.br')) return { produto: 'Laranja Moro', lp: 'LP-3 lm1.denavita.com.br' };
   if (u.includes('/pages/lm1')) return { produto: 'Laranja Moro', lp: 'LP-2 /pages/lm1' };
   if (u.includes('/pages/laranja-moro')) return { produto: 'Laranja Moro', lp: 'LP-1 /pages/laranja-moro' };
@@ -36,11 +35,14 @@ function parseCSV<T>(filePath: string): T[] {
   return result.data;
 }
 
-function buildUrlMap(urlRows: RawUrlRow[]): Map<string, RawUrlRow> {
+// Join key: adSetName + adName (exact)
+function buildUrlExactMap(rows: RawUrlRow[]): Map<string, RawUrlRow> {
   const map = new Map<string, RawUrlRow>();
-  for (const row of urlRows) {
-    const key = row['Nome do anúncio'];
-    if (!key) continue;
+  for (const row of rows) {
+    const adset = row['Nome do conjunto de anúncios'];
+    const ad = row['Nome do anúncio'];
+    if (!adset || !ad) continue;
+    const key = `${adset}||${ad}`;
     const existing = map.get(key);
     const spend = Number(row['Valor usado (BRL)']) || 0;
     const existingSpend = existing ? Number(existing['Valor usado (BRL)']) || 0 : -1;
@@ -49,29 +51,14 @@ function buildUrlMap(urlRows: RawUrlRow[]): Map<string, RawUrlRow> {
   return map;
 }
 
-// Build metrics map keyed by "adName||segment"
-function buildMetricsMap(metricsRows: RawMetricsRow[]): Map<string, RawMetricsRow> {
-  const map = new Map<string, RawMetricsRow>();
-  for (const row of metricsRows) {
-    const adName = row['Nome do anúncio'];
-    const seg = row['Segmentos de público'];
-    if (!adName || !seg) continue;
-    const key = `${adName}||${seg}`;
-    const existing = map.get(key);
-    const spend = Number(row['Valor usado (BRL)']) || 0;
-    const existingSpend = existing ? Number(existing['Valor usado (BRL)']) || 0 : -1;
-    if (!existing || spend > existingSpend) map.set(key, row);
-  }
-  return map;
-}
-
-function buildFuzzyMetricsMap(metricsRows: RawMetricsRow[]): Map<string, RawMetricsRow> {
-  const map = new Map<string, RawMetricsRow>();
-  for (const row of metricsRows) {
-    const adName = row['Nome do anúncio'];
-    const seg = row['Segmentos de público'];
-    if (!adName || !seg) continue;
-    const key = `${normalizeName(adName)}||${seg}`;
+// Join key: normalized(adSetName) + normalized(adName) (fuzzy fallback)
+function buildUrlFuzzyMap(rows: RawUrlRow[]): Map<string, RawUrlRow> {
+  const map = new Map<string, RawUrlRow>();
+  for (const row of rows) {
+    const adset = row['Nome do conjunto de anúncios'];
+    const ad = row['Nome do anúncio'];
+    if (!adset || !ad) continue;
+    const key = `${normalizeName(adset)}||${normalizeName(ad)}`;
     const existing = map.get(key);
     const spend = Number(row['Valor usado (BRL)']) || 0;
     const existingSpend = existing ? Number(existing['Valor usado (BRL)']) || 0 : -1;
@@ -86,24 +73,11 @@ export function getDashboardData(): DashboardData {
   if (cachedData) return cachedData;
 
   const dataDir = path.join(process.cwd(), 'data');
-  const segmentRows = parseCSV<RawSegmentRow>(path.join(dataDir, 'segment-data.csv'));
+  const segmentRows = parseCSV<RawSegmentMetricsRow>(path.join(dataDir, 'segment-metrics.csv'));
   const urlRows = parseCSV<RawUrlRow>(path.join(dataDir, 'url-data.csv'));
-  const metricsRows = parseCSV<RawMetricsRow>(path.join(dataDir, 'metrics-data.csv'));
 
-  // URL lookup (exact + fuzzy)
-  const urlExactMap = buildUrlMap(urlRows);
-  const urlFuzzyMap = new Map<string, RawUrlRow>();
-  for (const row of urlRows) {
-    const key = normalizeName(row['Nome do anúncio']);
-    const existing = urlFuzzyMap.get(key);
-    const spend = Number(row['Valor usado (BRL)']) || 0;
-    const existingSpend = existing ? Number(existing['Valor usado (BRL)']) || 0 : -1;
-    if (!existing || spend > existingSpend) urlFuzzyMap.set(key, row);
-  }
-
-  // Metrics lookup (exact + fuzzy by adName||segment)
-  const metricsExactMap = buildMetricsMap(metricsRows);
-  const metricsFuzzyMap = buildFuzzyMetricsMap(metricsRows);
+  const urlExactMap = buildUrlExactMap(urlRows);
+  const urlFuzzyMap = buildUrlFuzzyMap(urlRows);
 
   const VALID_SEGMENTS: Segment[] = ['engaged', 'prospecting', 'existing'];
 
@@ -112,6 +86,7 @@ export function getDashboardData(): DashboardData {
 
   for (const seg of segmentRows) {
     const adName = seg['Nome do anúncio'];
+    const adSetName = seg['Nome do conjunto de anúncios'];
     const segmento = seg['Segmentos de público'] as string;
     const tipoResultado = seg['Tipo de resultado'] as string;
 
@@ -123,12 +98,15 @@ export function getDashboardData(): DashboardData {
 
     if (gasto < 50 || resultados < 1) continue;
 
-    // URL JOIN
-    let urlRow = urlExactMap.get(adName);
+    // URL JOIN: exact first, then fuzzy-normalized
+    const exactKey = `${adSetName}||${adName}`;
+    const fuzzyKey = `${normalizeName(adSetName)}||${normalizeName(adName)}`;
+
+    let urlRow = urlExactMap.get(exactKey);
     if (urlRow) {
       exactMatches++;
     } else {
-      urlRow = urlFuzzyMap.get(normalizeName(adName));
+      urlRow = urlFuzzyMap.get(fuzzyKey);
       if (urlRow) { fuzzyMatches++; } else { unmatched++; continue; }
     }
 
@@ -139,19 +117,13 @@ export function getDashboardData(): DashboardData {
     const rawMedia = urlRow['Tipo de mídia'] || '';
     const tipoMidia: MediaType = rawMedia === 'Imagem' ? 'Imagem' : 'Vídeo';
 
-    // Metrics JOIN (exact first, then fuzzy)
-    const metricsKey = `${adName}||${segmento}`;
-    const metricsFuzzyKey = `${normalizeName(adName)}||${segmento}`;
-    const metrics = metricsExactMap.get(metricsKey) || metricsFuzzyMap.get(metricsFuzzyKey);
-
     const impressoes = Number(seg['Impressões']) || 0;
     const cliques = Number(seg['Cliques no link']) || 0;
-
-    const receita = metrics ? Number(metrics['Valor dos resultados']) || 0 : 0;
-    const roas = metrics ? Number(metrics['ROAS (retorno sobre o investimento em publicidade) das compras']) || 0 : 0;
-    const hookRate = metrics ? Number(metrics['Hook Rate']) || 0 : 0;
-    const viewsPagina = metrics ? Number(metrics['Visualizações da página de destino do site']) || 0 : 0;
-    const checkoutIniciados = metrics ? Number(metrics['Finalizações de compra iniciadas']) || 0 : 0;
+    const receita = Number(seg['Valor dos resultados']) || 0;
+    const roas = Number(seg['ROAS (retorno sobre o investimento em publicidade) das compras']) || 0;
+    const hookRate = Number(seg['Hook Rate']) || 0;
+    const viewsPagina = Number(seg['Visualizações da página de destino do site']) || 0;
+    const checkoutIniciados = Number(seg['Finalizações de compra iniciadas']) || 0;
 
     const cpa = resultados > 0 ? gasto / resultados : 0;
     const taxaConversao = cliques > 0 ? (resultados / cliques) * 100 : 0;
@@ -204,9 +176,10 @@ export function aggregateByAdAndSegment(ads: ProcessedAd[]): ProcessedAd[] {
       existing.roas = existing.gasto > 0 ? existing.receita / existing.gasto : 0;
       existing.taxaConversao = existing.cliques > 0 ? (existing.resultados / existing.cliques) * 100 : 0;
       existing.ctr = existing.impressoes > 0 ? (existing.cliques / existing.impressoes) * 100 : 0;
-      // hookRate: weighted average by impressions
       const totalImp = existing.impressoes;
-      existing.hookRate = totalImp > 0 ? ((existing.hookRate * (totalImp - ad.impressoes)) + (ad.hookRate * ad.impressoes)) / totalImp : ad.hookRate;
+      existing.hookRate = totalImp > 0
+        ? ((existing.hookRate * (totalImp - ad.impressoes)) + (ad.hookRate * ad.impressoes)) / totalImp
+        : ad.hookRate;
     }
   }
   return Array.from(map.values());
